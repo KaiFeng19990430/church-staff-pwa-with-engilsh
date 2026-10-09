@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/config/church_config.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/utils/error_messages.dart';
 import '../providers/service_catalog_provider.dart';
 
 const _weekdayNames = ['一', '二', '三', '四', '五', '六', '日'];
 
-String weekdayLabel(int weekday) => '星期${_weekdayNames[weekday - 1]}';
+String weekdayLabel(int weekday, [BuildContext? context]) {
+  final chinese = '星期${_weekdayNames[weekday - 1]}';
+  return context == null ? chinese : AppLanguage.text(context, chinese);
+}
 
 /// 管理員設定每週固定的聚會：新增、改名、改星期、調順序、停用。
 ///
@@ -71,7 +75,7 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
 
   Future<void> _save() async {
     if (!_services.any((service) => service.enabled)) {
-      _showMessage('至少要有一個聚會是開啟的。');
+      _showMessage(AppLanguage.text(context, '至少要有一個聚會是開啟的。'));
       return;
     }
     if (!_hasUnsavedChanges) {
@@ -85,12 +89,16 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
       // 網頁版存好會整頁重新載入，換成新的分頁；其他平台直接回上一頁。
       await context.read<ServiceCatalogProvider>().save(_services);
       if (!mounted) return;
-      messenger.showSnackBar(const SnackBar(content: Text('已儲存聚會設定')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppLanguage.text(context, '已儲存聚會設定'))),
+      );
       navigator.pop();
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      _showMessage('儲存失敗：${mapErrorToUserMessage(e)}');
+      _showMessage(
+        AppLanguage.text(context, '儲存失敗：${mapErrorToUserMessage(e)}'),
+      );
     }
   }
 
@@ -104,16 +112,18 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('還沒儲存'),
-        content: const Text('剛才的變更還沒儲存。要儲存的話，請按右上角 ✓。'),
+        title: Text(AppLanguage.text(context, '還沒儲存')),
+        content: Text(
+          AppLanguage.text(context, '剛才的變更還沒儲存。要儲存的話，請按右上角 ✓。'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('繼續編輯'),
+            child: Text(AppLanguage.text(context, '繼續編輯')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('不儲存，離開'),
+            child: Text(AppLanguage.text(context, '不儲存，離開')),
           ),
         ],
       ),
@@ -131,10 +141,10 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('聚會設定'),
+          title: Text(AppLanguage.text(context, '聚會設定')),
           actions: [
             IconButton(
-              tooltip: '儲存',
+              tooltip: AppLanguage.text(context, '儲存'),
               icon: _saving
                   ? const SizedBox(
                       width: 20,
@@ -152,10 +162,15 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Text(
-                '每週固定的聚會。改完按右上角 ✓ 儲存，所有人的 App 下次打開就會換成新的設定。\n'
-                '・改星期：已經排好的日期不會搬動，從下一個還沒排的那週開始用新的星期。\n'
-                '・停用：不再出現在服事表分頁，也不再產生新的日期；舊資料都會保留，之後可以再開啟。\n'
-                '・按住右邊的把手可以調整順序（服事表分頁的順序）。',
+                    Localizations.localeOf(context).languageCode == 'en'
+                    ? 'Weekly recurring services. Tap ✓ to save; everyone will see the updated settings the next time they open the app.\n'
+                      '・Changing the weekday does not move existing rosters; the new weekday takes effect for future unscheduled weeks.\n'
+                      '・Disabled services disappear from roster tabs and stop generating new dates. Existing data is kept, and the service can be re-enabled.\n'
+                      '・Drag the handle on the right to change the order of roster tabs.'
+                    : '每週固定的聚會。改完按右上角 ✓ 儲存，所有人的 App 下次打開就會換成新的設定。\n'
+                      '・改星期：已經排好的日期不會搬動，從下一個還沒排的那週開始用新的星期。\n'
+                      '・停用：不再出現在服事表分頁，也不再產生新的日期；舊資料都會保留，之後可以再開啟。\n'
+                      '・按住右邊的把手可以調整順序（服事表分頁的順序）。',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -177,9 +192,13 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
                     key: ValueKey(service.id),
                     title: Text('${service.label}｜${service.name}'),
                     subtitle: Text(
-                      service.enabled
-                          ? '每週${weekdayLabel(service.weekday)}'
-                          : '已停用（原本每週${weekdayLabel(service.weekday)}）',
+                      Localizations.localeOf(context).languageCode == 'en'
+                          ? service.enabled
+                                ? 'Weekly on ${weekdayLabel(service.weekday, context)}'
+                                : 'Disabled (was weekly on ${weekdayLabel(service.weekday, context)})'
+                          : service.enabled
+                                ? '每週${weekdayLabel(service.weekday)}'
+                                : '已停用（原本每週${weekdayLabel(service.weekday)}）',
                     ),
                     onTap: () => _edit(index: index),
                     trailing: Row(
@@ -207,11 +226,11 @@ class _ServiceSettingsScreenState extends State<ServiceSettingsScreen> {
               top: false,
               child: ListTile(
                 leading: const Icon(Icons.add),
-                title: const Text('新增聚會'),
+                title: Text(AppLanguage.text(context, '新增聚會')),
                 enabled: _services.length < 20,
                 subtitle: _services.length < 20
                     ? null
-                    : const Text('最多 20 種聚會'),
+                    : Text(AppLanguage.text(context, '最多 20 種聚會')),
                 onTap: () => _edit(),
               ),
             ),
@@ -270,17 +289,30 @@ class _ServiceDialogState extends State<_ServiceDialog> {
 
   String? _text(String? value, {required int max, bool unique = false}) {
     final text = value?.trim() ?? '';
-    if (text.isEmpty) return '請填寫';
-    if (text.length > max) return '最多 $max 個字';
-    if (RegExp(r'[\x00-\x1f\x7f]').hasMatch(text)) return '不能有特殊字元';
-    if (unique && widget.otherLabels.contains(text)) return '已經有同樣簡稱的聚會';
+    if (text.isEmpty) return AppLanguage.text(context, '請填寫');
+    if (text.length > max) {
+      return Localizations.localeOf(context).languageCode == 'en'
+          ? 'Maximum $max characters'
+          : '最多 $max 個字';
+    }
+    if (RegExp(r'[\x00-\x1f\x7f]').hasMatch(text)) {
+      return AppLanguage.text(context, '不能有特殊字元');
+    }
+    if (unique && widget.otherLabels.contains(text)) {
+      return AppLanguage.text(context, '已經有同樣簡稱的聚會');
+    }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.initial == null ? '新增聚會' : '修改聚會'),
+      title: Text(
+        AppLanguage.text(
+          context,
+          widget.initial == null ? '新增聚會' : '修改聚會',
+        ),
+      ),
       // 預設寬度會把「例如「主日」「禱告會」」這種說明截斷。
       content: SizedBox(
         width: 360,
@@ -292,9 +324,12 @@ class _ServiceDialogState extends State<_ServiceDialog> {
               TextFormField(
                 controller: _label,
                 autofocus: widget.initial == null,
-                decoration: const InputDecoration(
-                  labelText: '簡稱',
-                  helperText: '顯示在服事表分頁上，例如「主日」「禱告會」',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text(context, '簡稱'),
+                  helperText: AppLanguage.text(
+                    context,
+                    '顯示在服事表分頁上，例如「主日」「禱告會」',
+                  ),
                   helperMaxLines: 2,
                 ),
                 validator: (value) => _text(value, max: 20, unique: true),
@@ -302,21 +337,23 @@ class _ServiceDialogState extends State<_ServiceDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(
-                  labelText: '完整名稱',
-                  helperText: '例如「主日崇拜」「週三禱告會」',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text(context, '完整名稱'),
+                  helperText: AppLanguage.text(context, '例如「主日崇拜」「週三禱告會」'),
                 ),
                 validator: (value) => _text(value, max: 80),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<int>(
                 initialValue: _weekday,
-                decoration: const InputDecoration(labelText: '每週'),
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text(context, '每週'),
+                ),
                 items: [
                   for (var day = 1; day <= 7; day++)
                     DropdownMenuItem(
                       value: day,
-                      child: Text(weekdayLabel(day)),
+                      child: Text(weekdayLabel(day, context)),
                     ),
                 ],
                 onChanged: (value) =>
@@ -329,9 +366,12 @@ class _ServiceDialogState extends State<_ServiceDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(AppLanguage.text(context, '取消')),
         ),
-        FilledButton(onPressed: _submit, child: const Text('確定')),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(AppLanguage.text(context, '確定')),
+        ),
       ],
     );
   }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/time/church_time.dart';
 import '../../data/calendar_write_service.dart';
-
-final _dateLabelFormat = DateFormat('yyyy/MM/dd (E)', 'zh_TW');
 
 /// Add/edit form for a calendar event.
 ///
@@ -142,7 +141,9 @@ class _EventFormSheetState extends State<_EventFormSheet> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _error = error is CalendarWriteException ? error.message : '儲存失敗，請稍後再試';
+        _error = error is CalendarWriteException
+            ? error.message
+            : AppLanguage.text(context, '儲存失敗，請稍後再試');
       });
     }
   }
@@ -181,8 +182,8 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                 autofocus: widget.initial.title.isEmpty,
                 enabled: !_submitting,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: '活動名稱',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text(context, '活動名稱'),
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (_) {
@@ -192,7 +193,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
               const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('整天'),
+                title: Text(AppLanguage.text(context, '整天')),
                 value: _draft.allDay,
                 onChanged: _submitting
                     ? null
@@ -202,12 +203,14 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                       }),
               ),
               _FieldRow(
-                label: '開始',
+                label: AppLanguage.text(context, '開始'),
                 children: [
                   Expanded(
                     child: _PickerButton(
                       icon: Icons.event,
-                      text: _dateLabelFormat.format(_draft.startDate),
+                      text: DateFormat.yMMMMd(
+                        Localizations.localeOf(context).toString(),
+                      ).add_EEEE().format(_draft.startDate),
                       onPressed: _submitting
                           ? null
                           : () => _pickDate(isStart: true),
@@ -227,12 +230,14 @@ class _EventFormSheetState extends State<_EventFormSheet> {
               ),
               const SizedBox(height: 8),
               _FieldRow(
-                label: '結束',
+                label: AppLanguage.text(context, '結束'),
                 children: [
                   Expanded(
                     child: _PickerButton(
                       icon: Icons.event,
-                      text: _dateLabelFormat.format(_draft.endDate),
+                      text: DateFormat.yMMMMd(
+                        Localizations.localeOf(context).toString(),
+                      ).add_EEEE().format(_draft.endDate),
                       onPressed: _submitting
                           ? null
                           : () => _pickDate(isStart: false),
@@ -255,8 +260,8 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                 controller: _location,
                 enabled: !_submitting,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: '地點',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text(context, '地點'),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -265,8 +270,8 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                 controller: _description,
                 enabled: !_submitting,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: '說明',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text(context, '說明'),
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
@@ -286,7 +291,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                     onPressed: _submitting
                         ? null
                         : () => Navigator.of(context).pop(false),
-                    child: const Text('取消'),
+                    child: Text(AppLanguage.text(context, '取消')),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
@@ -297,7 +302,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('儲存'),
+                        : Text(AppLanguage.text(context, '儲存')),
                   ),
                 ],
               ),
@@ -361,19 +366,23 @@ Future<bool> confirmDeleteEvent(BuildContext context, String title) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('刪除活動'),
-      content: Text('確定要刪除「$title」嗎？行事曆上會直接消失。'),
+      title: Text(AppLanguage.text(context, '刪除活動')),
+      content: Text(
+        Localizations.localeOf(context).languageCode == 'en'
+            ? 'Delete “$title”? This will remove it from the calendar.'
+            : '確定要刪除「$title」嗎？行事曆上會直接消失。',
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('取消'),
+          child: Text(AppLanguage.text(context, '取消')),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
           style: FilledButton.styleFrom(
             backgroundColor: Theme.of(dialogContext).colorScheme.error,
           ),
-          child: const Text('刪除'),
+          child: Text(AppLanguage.text(context, '刪除')),
         ),
       ],
     ),

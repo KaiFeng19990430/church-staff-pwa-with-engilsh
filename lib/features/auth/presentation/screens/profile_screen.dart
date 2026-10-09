@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/config/church_config.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/time/church_time.dart';
 import '../../../../core/services/app_update_service.dart';
 import '../../../../core/services/app_version_service.dart';
@@ -71,7 +72,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            result == AppUpdateResult.updating ? '找到新版本，正在更新…' : '已經是最新版本',
+            AppLanguage.text(
+              context,
+              result == AppUpdateResult.updating ? '找到新版本，正在更新…' : '已經是最新版本',
+            ),
           ),
         ),
       );
@@ -81,7 +85,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // 這個按鈕存在的理由就是使用者已經不相信畫面上的版本了，失敗要說出來，
       // 不能讓它看起來像「檢查過了，沒事」。
       messenger.showSnackBar(
-        SnackBar(content: Text('檢查更新失敗：${mapErrorToUserMessage(error)}')),
+        SnackBar(
+          content: Text(
+            AppLanguage.text(context, '檢查更新失敗：${mapErrorToUserMessage(error)}'),
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isCheckingUpdate = false);
@@ -115,7 +123,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           dialogShown = false;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('載入失敗：${mapErrorToUserMessage(error)}')),
+          SnackBar(
+            content: Text(
+              AppLanguage.text(context, '載入失敗：${mapErrorToUserMessage(error)}'),
+            ),
+          ),
         );
       }
     } finally {
@@ -185,15 +197,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           PushToggleFailureReason.notWeb => '目前環境不支援網頁推播。',
           null => '通知未啟用，請確認瀏覽器通知權限設定。',
         };
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(reasonMessage)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLanguage.text(context, reasonMessage))),
+        );
       }
     } catch (error, st) {
       log('更新通知設定失敗', error: error, stackTrace: st);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('更新通知設定失敗：${mapErrorToUserMessage(error)}')),
+        SnackBar(
+          content: Text(
+            AppLanguage.text(
+              context,
+              '更新通知設定失敗：${mapErrorToUserMessage(error)}',
+            ),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -205,12 +224,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final session = context.watch<SessionProvider>();
+    final appLanguage = context.watch<AppLanguage>();
     final user = session.currentUser;
 
     if (user == null) return const SizedBox.shrink();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('個人中心')),
+      appBar: AppBar(title: Text(AppLanguage.text(context, '個人中心'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -249,7 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   alignment: WrapAlignment.center,
                   children: [
                     Chip(
-                      label: Text(user.role.label),
+                      label: Text(AppLanguage.text(context, user.role.label)),
                       backgroundColor: Theme.of(
                         context,
                       ).colorScheme.primaryContainer,
@@ -258,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       for (final group in UserGroup.values)
                         if (user.groups.contains(group))
                           Chip(
-                            label: Text(group.label),
+                            label: Text(AppLanguage.text(context, group.label)),
                             backgroundColor: Theme.of(
                               context,
                             ).colorScheme.secondaryContainer,
@@ -283,8 +303,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.manage_accounts),
-              title: const Text('帳號管理'),
-              subtitle: const Text('新增、刪除或修改同工權限'),
+              title: Text(AppLanguage.text(context, '帳號管理')),
+              subtitle: Text(AppLanguage.text(context, '新增、刪除或修改同工權限')),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _loadAndPush(
                 context,
@@ -294,8 +314,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.event_repeat),
-              title: const Text('聚會設定'),
-              subtitle: const Text('新增或修改每週的聚會'),
+              title: Text(AppLanguage.text(context, '聚會設定')),
+              subtitle: Text(AppLanguage.text(context, '新增或修改每週的聚會')),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _loadAndPush(
                 context,
@@ -305,8 +325,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.groups),
-              title: const Text('小組管理'),
-              subtitle: const Text('設定各牧區小組清單'),
+              title: Text(AppLanguage.text(context, '小組管理')),
+              subtitle: Text(AppLanguage.text(context, '設定各牧區小組清單')),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _loadAndPush(
                 context,
@@ -324,32 +344,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ChurchConfig.current.features.pushNotifications)
             SwitchListTile(
               secondary: const Icon(Icons.notifications_active),
-              title: const Text('服事提醒'),
-              subtitle: const Text('每週一晚間發送提醒'),
+              title: Text(AppLanguage.text(context, '服事提醒')),
+              subtitle: Text(AppLanguage.text(context, '每週一晚間發送提醒')),
               value: _isPushEnabled,
               onChanged: _isPushLoading ? null : _togglePush,
             ),
 
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(AppLanguage.text(context, '語言 / Language')),
+            trailing: DropdownButton<String>(
+              value: appLanguage.locale.languageCode,
+              underline: const SizedBox.shrink(),
+              items: const [
+                DropdownMenuItem(value: 'zh', child: Text('繁體中文')),
+                DropdownMenuItem(value: 'en', child: Text('English')),
+              ],
+              onChanged: (value) {
+                if (value != null) appLanguage.setLanguage(value);
+              },
+            ),
+          ),
+
           // Logout Button
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('登出', style: TextStyle(color: Colors.red)),
+            title: Text(
+              AppLanguage.text(context, '登出'),
+              style: const TextStyle(color: Colors.red),
+            ),
             onTap: () async {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('登出確認'),
-                  content: const Text('確定要登出嗎？'),
+                  title: Text(AppLanguage.text(context, '登出確認')),
+                  content: Text(AppLanguage.text(context, '確定要登出嗎？')),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('取消'),
+                      child: Text(AppLanguage.text(context, '取消')),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text(
-                        '登出',
-                        style: TextStyle(color: Colors.red),
+                      child: Text(
+                        AppLanguage.text(context, '登出'),
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                   ],
@@ -364,9 +403,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (logoutError == null) return;
               session.clearError();
               if (!context.mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(logoutError)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(AppLanguage.text(context, logoutError))),
+              );
             },
           ),
           Padding(
@@ -393,7 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // version.json 跟著 bundle 一起進快取（見 AppVersionService）。
                     if (info != null)
                       Text(
-                        '更新於 ${_buildVersionDateText(info)}',
+                        '${AppLanguage.text(context, '更新於')} ${_buildVersionDateText(info)}',
                         textAlign: TextAlign.center,
                         style: captionStyle,
                       ),
@@ -407,7 +446,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             horizontal: 12,
                           ),
                           child: Text(
-                            _isCheckingUpdate ? '檢查中…' : '檢查更新',
+                            AppLanguage.text(
+                              context,
+                              _isCheckingUpdate ? '檢查中…' : '檢查更新',
+                            ),
                             textAlign: TextAlign.center,
                             // 顏色跟上面那行一樣，只用底線表示按得下去。
                             style: captionStyle?.copyWith(
@@ -470,7 +512,7 @@ class _NewReleaseTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '有新版本可以更新',
+                    AppLanguage.text(context, '有新版本可以更新'),
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
@@ -481,7 +523,9 @@ class _NewReleaseTile extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '目前 $current，最新 ${release.version}。只有管理員看得到這則提醒。',
+              Localizations.localeOf(context).languageCode == 'en'
+                  ? 'Current: $current. Latest: ${release.version}. Only administrators see this notice.'
+                  : '目前 $current，最新 ${release.version}。只有管理員看得到這則提醒。',
               style: TextStyle(color: theme.colorScheme.onPrimaryContainer),
             ),
             if (release.notes.isNotEmpty) ...[
@@ -497,7 +541,7 @@ class _NewReleaseTile extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => openExternalLink(guideUrl),
-                  child: const Text('怎麼更新'),
+                  child: Text(AppLanguage.text(context, '怎麼更新')),
                 ),
               ),
           ],

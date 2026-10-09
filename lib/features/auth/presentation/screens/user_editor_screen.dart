@@ -10,6 +10,7 @@ import '../providers/session_provider.dart';
 import '../providers/user_admin_provider.dart';
 import '../widgets/account_error_snack_bar.dart';
 import '../../../../core/config/church_config.dart';
+import '../../../../core/localization/app_language.dart';
 
 class UserEditorScreen extends StatefulWidget {
   final User? user; // If null, it's add mode
@@ -63,12 +64,15 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('編輯權限', style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          AppLanguage.text(context, '編輯權限'),
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
         if (isAdmin)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              '管理員擁有全部編輯權限，不需要另外指定。',
+              AppLanguage.text(context, '管理員擁有全部編輯權限，不需要另外指定。'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -91,7 +95,7 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
                         }
                       });
                     },
-              title: Text(group.label),
+              title: Text(AppLanguage.text(context, group.label)),
               dense: true,
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
@@ -107,9 +111,9 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
         .where((type) => !usedTypes.contains(type))
         .toList();
     if (availableTypes.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已新增所有牧區')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.text(context, '已新增所有牧區'))),
+      );
       return;
     }
     setState(() {
@@ -143,9 +147,9 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
 
   Future<void> _save() async {
     if (_zones.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('請至少設定一個牧區')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.text(context, '請至少設定一個牧區'))),
+      );
       return;
     }
     if (_formKey.currentState!.validate()) {
@@ -181,9 +185,9 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('儲存成功')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLanguage.text(context, '儲存成功'))),
+          );
           Navigator.pop(context);
         }
       } catch (e, st) {
@@ -211,7 +215,9 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
         (!hadEmail && _emailController.text.trim().isNotEmpty);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.user == null ? '新增帳號' : '編輯帳號'),
+        title: Text(
+          AppLanguage.text(context, widget.user == null ? '新增帳號' : '編輯帳號'),
+        ),
         leading: widget.isDialog
             ? IconButton(
                 icon: const Icon(Icons.close),
@@ -232,32 +238,39 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '基本資料',
+                      AppLanguage.text(context, '基本資料'),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: '姓名',
+                      decoration: InputDecoration(
+                        labelText: AppLanguage.text(context, '姓名'),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (v) => v?.isEmpty == true ? '請輸入姓名' : null,
+                      validator: (v) => v?.isEmpty == true
+                          ? AppLanguage.text(context, '請輸入姓名')
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email (選填)',
+                      decoration: InputDecoration(
+                        labelText: AppLanguage.text(context, 'Email (選填)'),
                         border: OutlineInputBorder(),
                         hintText: 'example@gmail.com',
-                        helperText: '補上後會建立登入帳號並需要設定密碼',
+                        helperText: AppLanguage.text(
+                          context,
+                          '補上後會建立登入帳號並需要設定密碼',
+                        ),
                       ),
                       enabled: canEditEmail,
                       onChanged: canEditEmail ? (_) => setState(() {}) : null,
                       validator: (v) {
                         if (v == null || v.isEmpty) return null;
-                        if (!v.contains('@')) return '請輸入有效的 Email';
+                        if (!v.contains('@')) {
+                          return AppLanguage.text(context, '請輸入有效的 Email');
+                        }
                         return null;
                       },
                     ),
@@ -266,35 +279,41 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
                       controller: _usernameController,
                       // 只是顯示在個人頁的 @代稱；登入一律用 Email。以前叫「顯示帳號
                       // (ID)」而且有 Email 就必填，同工看不懂要填什麼。
-                      decoration: const InputDecoration(
-                        labelText: '帳號代稱（選填）',
+                      decoration: InputDecoration(
+                        labelText: AppLanguage.text(context, '帳號代稱（選填）'),
                         border: OutlineInputBorder(),
-                        helperText: '顯示在個人頁，不是登入用；不填就用姓名',
+                        helperText: AppLanguage.text(
+                          context,
+                          '顯示在個人頁，不是登入用；不填就用姓名',
+                        ),
                       ),
                     ),
                     if (shouldPromptPassword) ...[
                       if (!hadEmail &&
                           _emailController.text.trim().isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        const Text(
-                          '補上 Email 後會建立登入帳號，請設定可登入的密碼',
+                        Text(
+                          AppLanguage.text(
+                            context,
+                            '補上 Email 後會建立登入帳號，請設定可登入的密碼',
+                          ),
                           style: TextStyle(color: Colors.grey),
                         ),
                       ],
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
-                        decoration: const InputDecoration(
-                          labelText: '密碼',
+                        decoration: InputDecoration(
+                          labelText: AppLanguage.text(context, '密碼'),
                           border: OutlineInputBorder(),
-                          helperText: '建立登入帳號用',
+                          helperText: AppLanguage.text(context, '建立登入帳號用'),
                         ),
                         obscureText: true,
                         textInputAction: TextInputAction.done,
                         validator: (v) {
                           if (_emailController.text.trim().isNotEmpty &&
                               v?.trim().isEmpty == true) {
-                            return '請輸入密碼';
+                            return AppLanguage.text(context, '請輸入密碼');
                           }
                           return null;
                         },
@@ -304,14 +323,16 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
                     DropdownButtonFormField<UserRole>(
                       initialValue: _selectedRole,
                       decoration: InputDecoration(
-                        labelText: '角色',
+                        labelText: AppLanguage.text(context, '角色'),
                         border: const OutlineInputBorder(),
-                        helperText: isSelf ? '不能變更自己的角色，請另一位管理員幫你改' : null,
+                        helperText: isSelf
+                            ? AppLanguage.text(context, '不能變更自己的角色，請另一位管理員幫你改')
+                            : null,
                       ),
                       items: UserRole.values.map((role) {
                         return DropdownMenuItem(
                           value: role,
-                          child: Text(role.label),
+                          child: Text(AppLanguage.text(context, role.label)),
                         );
                       }).toList(),
                       onChanged: isSelf
@@ -334,7 +355,7 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '牧區資料（必填）',
+                  AppLanguage.text(context, '牧區資料（必填）'),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (ServiceType.active.any(
@@ -342,27 +363,27 @@ class _UserEditorScreenState extends State<UserEditorScreen> {
                 ))
                   TextButton.icon(
                     icon: const Icon(Icons.add),
-                    label: const Text('新增牧區'),
+                    label: Text(AppLanguage.text(context, '新增牧區')),
                     onPressed: _addZone,
                   ),
               ],
             ),
             if (_zones.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Center(
                   child: Text(
-                    '尚未設定牧區。請按「新增牧區」，至少設定一個才能儲存。',
+                    AppLanguage.text(context, '尚未設定牧區。請按「新增牧區」，至少設定一個才能儲存。'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey),
                   ),
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  '在牧區裡勾選「參與服事」，這位同工才會出現在該服事的排班名單。',
+                  AppLanguage.text(context, '在牧區裡勾選「參與服事」，這位同工才會出現在該服事的排班名單。'),
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
               ),
@@ -429,16 +450,16 @@ class _ZoneEditorCardState extends State<_ZoneEditorCard> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: const Text('確定要刪除此牧區嗎？'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(AppLanguage.text(context, '確定要刪除此牧區嗎？')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),
@@ -468,7 +489,9 @@ class _ZoneEditorCardState extends State<_ZoneEditorCard> {
                 Expanded(
                   child: DropdownButtonFormField<ServiceType>(
                     initialValue: _selectedType,
-                    decoration: const InputDecoration(labelText: '牧區'),
+                    decoration: InputDecoration(
+                      labelText: AppLanguage.text(context, '牧區'),
+                    ),
                     items: {...ServiceType.active, _selectedType}.map((type) {
                       final isUsed = widget.usedTypes.contains(type);
                       final isCurrent = type == _selectedType;
@@ -476,7 +499,7 @@ class _ZoneEditorCardState extends State<_ZoneEditorCard> {
                         value: type,
                         enabled: !isUsed || isCurrent,
                         child: Text(
-                          type.label,
+                          AppLanguage.text(context, type.label),
                           style: TextStyle(
                             color: !isUsed || isCurrent ? null : Colors.grey,
                           ),
@@ -516,26 +539,29 @@ class _ZoneEditorCardState extends State<_ZoneEditorCard> {
             const SizedBox(height: 12),
 
             _OptionListSelector(
-              title: '所屬小組',
+              title: AppLanguage.text(context, '所屬小組'),
               options: groupOptions,
               selected: _groups,
               onChanged: (newGroups) {
                 _groups = newGroups;
                 _notifyUpdate();
               },
-              emptyText: '尚未設定小組清單',
+              emptyText: AppLanguage.text(context, '尚未設定小組清單'),
             ),
             const SizedBox(height: 12),
 
             _OptionListSelector(
-              title: '參與服事',
+              title: AppLanguage.text(context, '參與服事'),
               options: ministryOptions,
               selected: _ministries,
               onChanged: (newMinistries) {
                 _ministries = newMinistries;
                 _notifyUpdate();
               },
-              emptyText: '尚未設定服事項目：請先到「服事表」按鉛筆，再按右上角清單圖示「服事項目設定」新增',
+              emptyText: AppLanguage.text(
+                context,
+                '尚未設定服事項目：請先到「服事表」按鉛筆，再按右上角清單圖示「服事項目設定」新增',
+              ),
             ),
           ],
         ),

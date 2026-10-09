@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
+import 'core/localization/app_language.dart';
 import 'core/config/church_config.dart';
 import 'core/config/service_catalog.dart';
 import 'core/services/push_notification_service.dart';
@@ -70,6 +72,7 @@ class ChurchApp extends StatelessWidget {
     final colorScheme = _colorScheme;
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AppLanguage()),
         Provider<PushNotificationService>.value(value: pushNotificationService),
 
         // SessionProvider — 管理登入狀態，最上游。
@@ -128,21 +131,25 @@ class ChurchApp extends StatelessWidget {
           },
         ),
       ],
-      child: MaterialApp(
-        title: ChurchConfig.current.appName,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: colorScheme,
-          inputDecorationTheme: InputDecorationTheme(
-            hintStyle: TextStyle(
-              color: colorScheme.onSurface.withValues(alpha: 0.35),
+      child: Consumer<AppLanguage>(
+        builder: (context, appLanguage, _) => MaterialApp(
+          title: ChurchConfig.current.appName,
+          locale: appLanguage.locale,
+          supportedLocales: const [Locale('zh', 'TW'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: colorScheme,
+            inputDecorationTheme: InputDecorationTheme(
+              hintStyle: TextStyle(
+                color: colorScheme.onSurface.withValues(alpha: 0.35),
+              ),
             ),
+            appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
           ),
-          appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+          home: AuthWrapper(pushNotificationService: pushNotificationService),
+          debugShowCheckedModeBanner: false,
         ),
-        locale: const Locale('zh', 'TW'),
-        home: AuthWrapper(pushNotificationService: pushNotificationService),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
@@ -230,7 +237,10 @@ class _AuthRestoringShell extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   ),
                   const SizedBox(width: 12),
-                  Text('載入中…', style: theme.textTheme.titleMedium),
+                  Text(
+                    AppLanguage.text(context, '載入中…'),
+                    style: theme.textTheme.titleMedium,
+                  ),
                 ],
               ),
             ],

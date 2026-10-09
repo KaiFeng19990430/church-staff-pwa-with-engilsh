@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:church_staff_pwa/core/types/service_type.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/widgets/text_controller_scope.dart';
 import '../providers/group_settings_provider.dart';
 import '../providers/user_admin_provider.dart';
@@ -39,7 +40,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
     // controller 由 TextControllerScope 在對話框子樹卸載時 dispose。
     final controller = TextEditingController();
     final name = await _showGroupNameDialog(
-      title: '新增小組',
+      title: AppLanguage.text(context, '新增小組'),
       controller: controller,
       existing: _editingTemplates[type] ?? const <String>[],
     );
@@ -59,7 +60,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
     final current = _editingTemplates[type]?[index] ?? '';
     final controller = TextEditingController(text: current);
     final name = await _showGroupNameDialog(
-      title: '編輯小組',
+      title: AppLanguage.text(context, '編輯小組'),
       controller: controller,
       existing: _editingTemplates[type] ?? const <String>[],
       currentName: current,
@@ -72,16 +73,16 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: const Text('確定要刪除此小組嗎？'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(AppLanguage.text(context, '確定要刪除此小組嗎？')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),
@@ -104,12 +105,12 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         String? errorText;
         String? validateValue(String value) {
           final trimmed = value.trim();
-          if (trimmed.isEmpty) return '請輸入名稱';
+          if (trimmed.isEmpty) return AppLanguage.text(context, '請輸入名稱');
           final isDuplicate = existing.any(
             (name) =>
                 name.trim() == trimmed && name.trim() != currentName?.trim(),
           );
-          if (isDuplicate) return '名稱已存在';
+          if (isDuplicate) return AppLanguage.text(context, '名稱已存在');
           return null;
         }
 
@@ -132,7 +133,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 controller: controller,
                 autofocus: true,
                 decoration: InputDecoration(
-                  labelText: '小組名稱',
+                  labelText: AppLanguage.text(context, '小組名稱'),
                   border: const OutlineInputBorder(),
                   errorText: errorText,
                 ),
@@ -143,9 +144,12 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('取消'),
+                  child: Text(AppLanguage.text(context, '取消')),
                 ),
-                TextButton(onPressed: submit, child: const Text('儲存')),
+                TextButton(
+                  onPressed: submit,
+                  child: Text(AppLanguage.text(context, '儲存')),
+                ),
               ],
             ),
           ),
@@ -165,13 +169,13 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
     final provider = context.watch<GroupSettingsProvider>();
     if (!_initialized && provider.isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('小組設定')),
+        appBar: AppBar(title: Text(AppLanguage.text(context, '小組設定'))),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (!_initialized && provider.error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('小組設定')),
+        appBar: AppBar(title: Text(AppLanguage.text(context, '小組設定'))),
         body: Center(child: Text(provider.error!)),
       );
     }
@@ -180,11 +184,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       length: ServiceType.active.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('小組設定'),
+          title: Text(AppLanguage.text(context, '小組設定')),
           bottom: TabBar(
             isScrollable: ServiceType.active.length > 3,
             tabs: ServiceType.active
-                .map((type) => Tab(text: type.label))
+                .map((type) => Tab(text: AppLanguage.text(context, type.label)))
                 .toList(),
           ),
           actions: [
@@ -213,7 +217,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 if (index == groups.length) {
                   return ListTile(
                     leading: const Icon(Icons.add),
-                    title: const Text('新增小組'),
+                    title: Text(AppLanguage.text(context, '新增小組')),
                     onTap: () => _promptAddGroup(type),
                   );
                 }

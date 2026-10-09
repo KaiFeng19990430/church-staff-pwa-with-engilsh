@@ -10,6 +10,7 @@ import 'package:church_staff_pwa/core/types/service_type.dart';
 import '../../../auth/presentation/providers/user_admin_provider.dart';
 import '../providers/roster_provider.dart';
 import '../../../../core/utils/error_messages.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/widgets/settings_bottom_sheet.dart';
 import '../write_failure.dart';
 import 'duty_row.dart';
@@ -64,6 +65,7 @@ class RosterCard extends StatelessWidget {
       (provider) => provider.eventOptionsRevision,
     );
     final rosterProvider = context.read<RosterProvider>();
+    final locale = Localizations.localeOf(context).toString();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -87,7 +89,7 @@ class RosterCard extends StatelessWidget {
               : Theme.of(context).colorScheme.primary,
         ),
         title: Text(
-          _dateFormat.format(roster.date),
+          DateFormat('yyyy/MM/dd (EEEEE)', locale).format(roster.date),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Row(
@@ -153,7 +155,7 @@ class RosterCard extends StatelessWidget {
                     }),
                     if (isEditMode)
                       ActionChip(
-                        label: const Text('新增事件'),
+                        label: Text(AppLanguage.text(context, '新增事件')),
                         onPressed: () => _showAddSpecialEventDialog(context),
                         padding: EdgeInsets.zero,
                         labelPadding: const EdgeInsets.symmetric(
@@ -202,7 +204,7 @@ class RosterCard extends StatelessWidget {
       ),
       builder: (context) {
         return _RosterPeopleDialog(
-          title: '新增服事項目',
+          title: AppLanguage.text(context, '新增服事項目'),
           rosterType: roster.type,
           roleOptions: roleOptions,
           initialRole: roleOptions.isNotEmpty ? roleOptions.first : null,
@@ -210,7 +212,7 @@ class RosterCard extends StatelessWidget {
           initialPeople: const [placeholderPerson],
           initialPersonIdsByName: const {},
           onSubmit: (selection) => _addDuty(context, selection),
-          submitLabel: '新增',
+          submitLabel: AppLanguage.text(context, '新增'),
           useBottomSheet: true,
         );
       },
@@ -247,16 +249,20 @@ class RosterCard extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('確定要刪除「$role」嗎？'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'en'
+              ? 'Delete “$role”?'
+              : '確定要刪除「$role」嗎？',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),
@@ -347,7 +353,9 @@ class RosterCard extends StatelessWidget {
       // 而不是這張 sheet 的 —— sheet 被 pop 掉之後才輪到 onSwap 執行。
       builder: (sheetContext) {
         return _RosterPeopleDialog(
-          title: '編輯 ${duty.role}',
+          title: Localizations.localeOf(context).languageCode == 'en'
+              ? 'Edit ${duty.role}'
+              : '編輯 ${duty.role}',
           rosterType: roster.type,
           initialRoleText: duty.role,
           roleOptions: const [],
@@ -358,7 +366,7 @@ class RosterCard extends StatelessWidget {
               : duty.people,
           initialPersonIdsByName: duty.personIdsByName,
           onSubmit: (selection) => _updateDuty(context, index, selection),
-          submitLabel: '儲存',
+          submitLabel: AppLanguage.text(context, '儲存'),
           roleEditable: false,
           useBottomSheet: true,
           onSwap: () => _showSwapDutyDialog(context, index, duty),
@@ -428,16 +436,20 @@ class RosterCard extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('確定要刪除「$event」嗎？'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'en'
+              ? 'Delete “$event”?'
+              : '確定要刪除「$event」嗎？',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),

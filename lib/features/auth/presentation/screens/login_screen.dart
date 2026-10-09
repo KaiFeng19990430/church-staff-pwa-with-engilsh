@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/config/church_config.dart';
+import '../../../../core/localization/app_language.dart';
 import '../providers/session_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -41,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final session = context.watch<SessionProvider>();
+    final appLanguage = context.watch<AppLanguage>();
 
     return Scaffold(
       body: SafeArea(
@@ -73,6 +75,28 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ).textTheme.headlineMedium,
                                 textAlign: TextAlign.center,
                               ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: DropdownButton<String>(
+                                  value: appLanguage.locale.languageCode,
+                                  underline: const SizedBox.shrink(),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'zh',
+                                      child: Text('繁體中文'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'en',
+                                      child: Text('English'),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      appLanguage.setLanguage(value);
+                                    }
+                                  },
+                                ),
+                              ),
                               const SizedBox(height: 32),
                               TextFormField(
                                 controller: _usernameController,
@@ -90,7 +114,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     FocusScope.of(context).nextFocus(),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return '請輸入 Email';
+                                    return AppLanguage.text(
+                                      context,
+                                      '請輸入 Email',
+                                    );
                                   }
                                   return null;
                                 },
@@ -99,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextFormField(
                                 controller: _passwordController,
                                 decoration: InputDecoration(
-                                  labelText: '密碼',
+                                  labelText: AppLanguage.text(context, '密碼'),
                                   border: const OutlineInputBorder(),
                                   prefixIcon: const Icon(Icons.lock),
                                   suffixIcon: IconButton(
@@ -108,7 +135,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ? Icons.visibility_off
                                           : Icons.visibility,
                                     ),
-                                    tooltip: _obscurePassword ? '顯示密碼' : '隱藏密碼',
+                                    tooltip: AppLanguage.text(
+                                      context,
+                                      _obscurePassword ? '顯示密碼' : '隱藏密碼',
+                                    ),
                                     onPressed: () {
                                       setState(() {
                                         _obscurePassword = !_obscurePassword;
@@ -120,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 textInputAction: TextInputAction.done,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return '請輸入密碼';
+                                    return AppLanguage.text(context, '請輸入密碼');
                                   }
                                   return null;
                                 },
@@ -130,7 +160,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
                                   onPressed: _showForgotPassword,
-                                  child: const Text('忘記密碼？'),
+                                  child: Text(
+                                    AppLanguage.text(context, '忘記密碼？'),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -150,13 +182,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text('登入'),
+                                      : Text(AppLanguage.text(context, '登入')),
                                 ),
                               ),
                               if (session.error != null) ...[
                                 const SizedBox(height: 16),
                                 Text(
-                                  session.error!,
+                                  AppLanguage.text(context, session.error!),
                                   style: TextStyle(
                                     color: Theme.of(context).colorScheme.error,
                                   ),
@@ -227,30 +259,35 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
     if (sentTo != null) {
       // Firebase 不告訴我們這個 Email 有沒有帳號，所以話只能說到「如果有」。
       return AlertDialog(
-        title: const Text('請到信箱收信'),
+        title: Text(AppLanguage.text(context, '請到信箱收信')),
         content: Text(
-          '如果 $sentTo 有帳號，重設密碼的信已經寄出。'
-          '點信裡的連結設定新密碼，再回來登入。\n\n'
-          '幾分鐘內沒收到的話，看一下垃圾郵件；還是沒有就請管理員確認帳號的 Email。',
+          Localizations.localeOf(context).languageCode == 'en'
+              ? 'If an account exists for $sentTo, a password reset email has been sent. '
+                    'Follow the link in the email to set a new password, then sign in again.\n\n'
+                    'If it does not arrive within a few minutes, check your spam folder. '
+                    'If it is still missing, ask an administrator to verify the account email.'
+              : '如果 $sentTo 有帳號，重設密碼的信已經寄出。'
+                    '點信裡的連結設定新密碼，再回來登入。\n\n'
+                    '幾分鐘內沒收到的話，看一下垃圾郵件；還是沒有就請管理員確認帳號的 Email。',
         ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('好'),
+            child: Text(AppLanguage.text(context, '好')),
           ),
         ],
       );
     }
 
     return AlertDialog(
-      title: const Text('忘記密碼'),
+      title: Text(AppLanguage.text(context, '忘記密碼')),
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('輸入登入用的 Email，我們會寄一封重設密碼的信給你。'),
+            Text(AppLanguage.text(context, '輸入登入用的 Email，我們會寄一封重設密碼的信給你。')),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,

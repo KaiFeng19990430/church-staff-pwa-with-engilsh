@@ -4,6 +4,7 @@ import 'package:church_staff_pwa/core/types/service_type.dart';
 import '../providers/roster_provider.dart';
 import '../../../auth/presentation/providers/user_admin_provider.dart';
 import '../../../../core/widgets/settings_bottom_sheet.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/widgets/text_controller_scope.dart';
 import '../write_failure.dart';
 
@@ -51,7 +52,7 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
     // controller 由 TextControllerScope 在 bottom sheet 子樹卸載時 dispose。
     final controller = TextEditingController();
     final name = await _showRoleNameDialog(
-      title: '新增項目',
+      title: AppLanguage.text(context, '新增項目'),
       controller: controller,
       existing: _editingTemplates[type] ?? const <String>[],
     );
@@ -71,7 +72,7 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
     final current = _editingTemplates[type]?[index] ?? '';
     final controller = TextEditingController(text: current);
     final name = await _showRoleNameDialog(
-      title: '編輯項目',
+      title: AppLanguage.text(context, '編輯項目'),
       controller: controller,
       existing: _editingTemplates[type] ?? const <String>[],
       currentName: current,
@@ -107,16 +108,21 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: const Text('今天以後每一週的服事表都會拿掉這一項，已經排的人也會一起刪掉。已經過去的服事表不會動。'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(
+          AppLanguage.text(
+            context,
+            '今天以後每一週的服事表都會拿掉這一項，已經排的人也會一起刪掉。已經過去的服事表不會動。',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),
@@ -145,12 +151,12 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
         String? errorText;
         String? validateValue(String value) {
           final trimmed = value.trim();
-          if (trimmed.isEmpty) return '請輸入名稱';
+          if (trimmed.isEmpty) return AppLanguage.text(context, '請輸入名稱');
           final isDuplicate = existing.any(
             (name) =>
                 name.trim() == trimmed && name.trim() != currentName?.trim(),
           );
-          if (isDuplicate) return '名稱已存在';
+          if (isDuplicate) return AppLanguage.text(context, '名稱已存在');
           return null;
         }
 
@@ -174,8 +180,8 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
                 child: TextField(
                   controller: controller,
                   decoration: InputDecoration(
-                    labelText: '服事項目名稱',
-                    hintText: '例：敬拜主領',
+                    labelText: AppLanguage.text(context, '服事項目名稱'),
+                    hintText: AppLanguage.text(context, '例：敬拜主領'),
                     hintStyle: TextStyle(
                       color: Theme.of(
                         context,
@@ -222,16 +228,16 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('還沒儲存'),
-        content: const Text('剛才的變更還沒儲存。要儲存的話，請按右上角 ✓。'),
+        title: Text(AppLanguage.text(context, '還沒儲存')),
+        content: Text(AppLanguage.text(context, '剛才的變更還沒儲存。要儲存的話，請按右上角 ✓。')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('繼續編輯'),
+            child: Text(AppLanguage.text(context, '繼續編輯')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('不儲存，離開'),
+            child: Text(AppLanguage.text(context, '不儲存，離開')),
           ),
         ],
       ),
@@ -252,11 +258,13 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
         length: ServiceType.active.length,
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('服事項目設定'),
+            title: Text(AppLanguage.text(context, '服事項目設定')),
             bottom: TabBar(
               isScrollable: ServiceType.active.length > 3,
               tabs: ServiceType.active
-                  .map((type) => Tab(text: type.label))
+                  .map(
+                    (type) => Tab(text: AppLanguage.text(context, type.label)),
+                  )
                   .toList(),
             ),
             actions: [
@@ -266,7 +274,11 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
                   final rosterProvider = context.read<RosterProvider>();
                   final userAdminProvider = context.read<UserAdminProvider>();
                   final messenger = ScaffoldMessenger.of(context);
-                  // 失敗一律留在這頁：改到一半的設定還在，再按一次就能重送。
+                  final saveLabel = AppLanguage.text(context, '儲存');
+                  final partialNote = AppLanguage.text(
+                    context,
+                    _partialSaveNote,
+                  );
                   PartialUpdateException? partial;
                   try {
                     await rosterProvider.updateTemplates(
@@ -274,13 +286,9 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
                       renamedRolesByType: _renamedRolesByType,
                     );
                   } on PartialUpdateException catch (e) {
-                    // 樣板已經寫進去了，只是有幾天的服事表沒改到名。同工設定
-                    // 照樣要跟著新樣板清，不然兩邊對不上。
                     partial = e;
                   } catch (e) {
-                    // 樣板沒寫進去就不清同工設定。以前寫失敗也照清，同工的服事
-                    // 被新樣板刪掉，樣板本身卻還是舊的。
-                    showWriteFailure(messenger, '儲存', e);
+                    showWriteFailure(messenger, saveLabel, e);
                     return;
                   }
                   try {
@@ -288,15 +296,15 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
                       _editingTemplates,
                     );
                   } catch (e) {
-                    showWriteFailure(messenger, '儲存', e);
+                    showWriteFailure(messenger, saveLabel, e);
                     return;
                   }
                   if (partial != null) {
                     showWriteFailure(
                       messenger,
-                      '儲存',
+                      saveLabel,
                       partial,
-                      partialNote: _partialSaveNote,
+                      partialNote: partialNote,
                     );
                     return;
                   }
@@ -319,8 +327,11 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(32),
                           child: Text(
-                            '這個聚會還沒有服事項目。\n按左下角「新增項目」加入，例如「招待」「司琴」，'
-                            '全部加好後按右上角 ✓ 儲存。',
+                            AppLanguage.text(
+                              context,
+                              '這個聚會還沒有服事項目。\n按左下角「新增項目」加入，例如「招待」「司琴」，'
+                              '全部加好後按右上角 ✓ 儲存。',
+                            ),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
@@ -386,7 +397,7 @@ class _RoleSettingsScreenState extends State<RoleSettingsScreen> {
                     top: false,
                     child: ListTile(
                       leading: const Icon(Icons.add),
-                      title: const Text('新增項目'),
+                      title: Text(AppLanguage.text(context, '新增項目')),
                       onTap: () => _promptAddRole(type),
                     ),
                   ),

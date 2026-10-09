@@ -136,16 +136,16 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('尚未儲存'),
-        content: const Text('這裡改的人員還沒儲存，去交換會丟掉這些改動。'),
+        title: Text(AppLanguage.text(context, '尚未儲存')),
+        content: Text(AppLanguage.text(context, '這裡改的人員還沒儲存，去交換會丟掉這些改動。')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('留在這裡'),
+            child: Text(AppLanguage.text(context, '留在這裡')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('丟掉並交換'),
+            child: Text(AppLanguage.text(context, '丟掉並交換')),
           ),
         ],
       ),
@@ -257,16 +257,20 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('確定要刪除「$trimmed」嗎？'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'en'
+              ? 'Delete “$trimmed”?'
+              : '確定要刪除「$trimmed」嗎？',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),

@@ -14,6 +14,7 @@ import '../providers/roster_provider.dart';
 import '../widgets/roster_card.dart';
 import '../widgets/photo_import_progress.dart';
 import '../../../../core/utils/error_messages.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/utils/scroll_anchor.dart';
 import '../../../../core/utils/snappy_page_scroll_physics.dart';
@@ -70,7 +71,11 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
           dialogShown = false;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('載入失敗：${mapErrorToUserMessage(error)}')),
+          SnackBar(
+            content: Text(
+              AppLanguage.text(context, '載入失敗：${mapErrorToUserMessage(error)}'),
+            ),
+          ),
         );
       }
     } finally {
@@ -88,9 +93,9 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
       final session = context.read<SessionProvider>();
 
       if (!session.canEditRoster) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('沒有權限進入編輯模式')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLanguage.text(context, '沒有權限進入編輯模式'))),
+        );
         widget.onExit();
         return;
       }
@@ -111,7 +116,7 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
     // settings 的寫入權在 firestore.rules 裡是 admin only，所以非 admin 看到
     // 這兩顆按鈕只會按下去然後失敗 —— 不如不要顯示。
     final isAdmin = context.select<SessionProvider, bool>((s) => s.isAdmin);
-    const titleText = '編輯服事表';
+    final titleText = AppLanguage.text(context, '編輯服事表');
 
     final appBar = AppBar(
       title: Text(titleText),
@@ -120,7 +125,7 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
         if (isAdmin) ...[
           IconButton(
             icon: const Icon(Icons.palette_outlined),
-            tooltip: '事件選項設定',
+            tooltip: AppLanguage.text(context, '事件選項設定'),
             onPressed: () => _loadAndPush(
               context,
               event_settings_screen.loadLibrary,
@@ -129,7 +134,7 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.list_alt_outlined),
-            tooltip: '服事項目設定',
+            tooltip: AppLanguage.text(context, '服事項目設定'),
             onPressed: () => _loadAndPush(
               context,
               role_settings_screen.loadLibrary,
@@ -140,8 +145,11 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
         // 以前是 view_list 圖示，跟旁邊「服事項目設定」的清單圖示幾乎一樣，
         // 照著「按清單圖示」的說明就會按到這顆、直接離開編輯模式。
         Tooltip(
-          message: '切換至檢視模式',
-          child: TextButton(onPressed: widget.onExit, child: const Text('完成')),
+          message: AppLanguage.text(context, '切換至檢視模式'),
+          child: TextButton(
+            onPressed: widget.onExit,
+            child: Text(AppLanguage.text(context, '完成')),
+          ),
         ),
       ],
       bottom: allowedTypes.isEmpty
@@ -160,10 +168,10 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
     if (allowedTypes.isEmpty) {
       return Scaffold(
         appBar: appBar,
-        body: const EmptyState(
+        body: EmptyState(
           icon: Icons.folder_off_outlined,
-          message: '尚未設定可檢視的牧區',
-          hint: '請先到使用者管理為您指派服事牧區',
+          message: AppLanguage.text(context, '尚未設定可檢視的牧區'),
+          hint: AppLanguage.text(context, '請先到使用者管理為您指派服事牧區'),
         ),
       );
     }
@@ -189,7 +197,7 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
                   const CircularProgressIndicator(),
                   const SizedBox(height: 12),
                   Text(
-                    '載入服事資訊中…',
+                    AppLanguage.text(context, '載入服事資訊中…'),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -208,7 +216,7 @@ class _RosterEditScreenState extends State<RosterEditScreen> {
                 onPressed: () =>
                     context.read<RosterProvider>().fetchInitialData(),
                 icon: const Icon(Icons.refresh),
-                label: const Text('重試'),
+                label: Text(AppLanguage.text(context, '重試')),
               ),
             );
           }
@@ -285,15 +293,18 @@ class _RosterListState extends State<_RosterList>
     if (rosters.isEmpty) {
       return EmptyState(
         icon: Icons.event_busy_outlined,
-        message: '此類別目前沒有服事資訊',
+        message: AppLanguage.text(context, '此類別目前沒有服事資訊'),
         hint: isEditMode
-            ? (_photoImportAvailable ? '可以用服事表照片快速建立' : '懂技術的同工可以貼上 JSON 快速建立')
-            : '管理員建立後會在這裡顯示',
+            ? AppLanguage.text(
+                context,
+                _photoImportAvailable ? '可以用服事表照片快速建立' : '懂技術的同工可以貼上 JSON 快速建立',
+              )
+            : AppLanguage.text(context, '管理員建立後會在這裡顯示'),
         action: isEditMode
             ? OutlinedButton.icon(
                 onPressed: () => _showImportJsonDialog(context),
                 icon: const Icon(Icons.upload_file),
-                label: const Text('匯入服事表'),
+                label: Text(AppLanguage.text(context, '匯入服事表')),
               )
             : null,
       );
@@ -336,16 +347,22 @@ class _RosterListState extends State<_RosterList>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _photoImportAvailable ? '匯入服事表' : '進階：匯入整季服事表',
+                    AppLanguage.text(
+                      context,
+                      _photoImportAvailable ? '匯入服事表' : '進階：匯入整季服事表',
+                    ),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   // 沒有照片辨識時只剩貼 JSON，那是給技術同工的。新教會第一次
                   // 進編輯模式最先看到這張卡，要讓他知道可以跳過。
                   Text(
-                    _photoImportAvailable
-                        ? '用服事表照片辨識，依日期批次填入'
-                        : '給懂技術的同工用（貼上 JSON 資料）。一般直接在下面各日期按「新增服事項目」排班即可。',
+                    AppLanguage.text(
+                      context,
+                      _photoImportAvailable
+                          ? '用服事表照片辨識，依日期批次填入'
+                          : '給懂技術的同工用（貼上 JSON 資料）。一般直接在下面各日期按「新增服事項目」排班即可。',
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -356,13 +373,13 @@ class _RosterListState extends State<_RosterList>
               FilledButton.icon(
                 onPressed: () => _showImportJsonDialog(context),
                 icon: const Icon(Icons.upload_file),
-                label: const Text('匯入'),
+                label: Text(AppLanguage.text(context, '匯入')),
               )
             else
               OutlinedButton.icon(
                 onPressed: () => _showImportJsonDialog(context),
                 icon: const Icon(Icons.upload_file),
-                label: const Text('匯入'),
+                label: Text(AppLanguage.text(context, '匯入')),
               ),
           ],
         ),

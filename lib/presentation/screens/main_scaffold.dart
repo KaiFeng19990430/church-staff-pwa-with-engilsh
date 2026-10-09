@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_language.dart';
 import '../../core/widgets/text_warmup.dart';
 import '../../features/roster/presentation/providers/roster_provider.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
@@ -63,21 +64,21 @@ class _MainScaffoldState extends State<MainScaffold> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: '首頁',
+            label: AppLanguage.text(context, '首頁'),
           ),
           NavigationDestination(
             icon: Icon(Icons.list_alt_outlined),
             selectedIcon: Icon(Icons.list_alt),
-            label: '服事表',
+            label: AppLanguage.text(context, '服事表'),
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: '我的',
+            label: AppLanguage.text(context, '我的'),
           ),
         ],
       ),

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/app_language.dart';
 import '../../domain/entities/calendar_event.dart';
-
-final _titleFormat = DateFormat('yyyy/MM/dd (E)', 'zh_TW');
-final _timeFormat = DateFormat('HH:mm', 'zh_TW');
-final _dateTimeFormat = DateFormat('MM/dd HH:mm', 'zh_TW');
 
 /// Bottom sheet that lists all events on a given [day].
 ///
@@ -23,7 +20,8 @@ Future<void> showDayEventsSheet(
   required Future<void> Function(CalendarEvent event) onOpenEvent,
   Future<void> Function(DateTime day)? onAddEvent,
 }) async {
-  final title = _titleFormat.format(day);
+  final locale = Localizations.localeOf(context).toString();
+  final title = DateFormat.yMMMMd(locale).add_EEEE().format(day);
   final colorScheme = Theme.of(context).colorScheme;
 
   await showModalBottomSheet<void>(
@@ -52,14 +50,16 @@ Future<void> showDayEventsSheet(
               ),
               const SizedBox(height: 4),
               Text(
-                '當天活動 ${events.length} 筆',
+                Localizations.localeOf(sheetContext).languageCode == 'en'
+                    ? '${events.length} event(s) today'
+                    : '當天活動 ${events.length} 筆',
                 style: TextStyle(fontSize: 13, color: colorScheme.primary),
               ),
               const SizedBox(height: 12),
               if (events.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
-                  child: Text('當天沒有活動'),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(AppLanguage.text(sheetContext, '當天沒有活動')),
                 )
               else
                 Flexible(
@@ -94,7 +94,10 @@ Future<void> showDayEventsSheet(
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  _formatEventTimeSummary(event),
+                                  _formatEventTimeSummary(
+                                    event,
+                                    Localizations.localeOf(context).toString(),
+                                  ),
                                   style: const TextStyle(fontSize: 13),
                                 ),
                                 if (event.location != null &&
@@ -128,7 +131,7 @@ Future<void> showDayEventsSheet(
                       await onAddEvent(day);
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text('新增活動'),
+                    label: Text(AppLanguage.text(sheetContext, '新增活動')),
                   ),
                 ),
               ],
@@ -140,19 +143,22 @@ Future<void> showDayEventsSheet(
   );
 }
 
-String _formatEventTimeSummary(CalendarEvent event) {
+String _formatEventTimeSummary(CalendarEvent event, String locale) {
   if (event.isAllDay) {
+    if (locale.startsWith('en')) {
+      return event.spansMultipleDays ? 'All day, multiple days' : 'All day';
+    }
     return event.spansMultipleDays ? '全天，多日活動' : '全天';
   }
 
   final sameDay = DateUtils.isSameDay(event.startTime, event.endTime);
   if (sameDay) {
-    final startText = _timeFormat.format(event.startTime);
-    final endText = _timeFormat.format(event.endTime);
+    final startText = DateFormat.Hm(locale).format(event.startTime);
+    final endText = DateFormat.Hm(locale).format(event.endTime);
     return '$startText - $endText';
   }
 
-  final startText = _dateTimeFormat.format(event.startTime);
-  final endText = _dateTimeFormat.format(event.endTime);
+  final startText = DateFormat.Md(locale).add_Hm().format(event.startTime);
+  final endText = DateFormat.Md(locale).add_Hm().format(event.endTime);
   return '$startText - $endText';
 }

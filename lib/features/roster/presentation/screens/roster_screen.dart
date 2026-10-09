@@ -8,6 +8,7 @@ import '../../../auth/presentation/providers/session_provider.dart';
 import '../providers/roster_provider.dart';
 import '../widgets/roster_view_card.dart';
 import '../../../../core/utils/error_messages.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/utils/scroll_anchor.dart';
 import '../../../../core/utils/snappy_page_scroll_physics.dart';
@@ -134,7 +135,7 @@ class _RosterScreenState extends State<RosterScreen>
     final allowedTypes =
         session.currentUser?.allowedRosterTypes ?? const <ServiceType>[];
     // 標題不分本季／下季：對同工來說那只是「服事表」，範圍怎麼算他不用管。
-    const titleText = '服事表';
+    final titleText = AppLanguage.text(context, '服事表');
     // select 而非 watch：否則每次 fetch 的 loading 開關都會重建整個 Scaffold
     // （含 AppBar / TabBar / TabController）。
     final isEditMode = context.select<RosterProvider, bool>(
@@ -158,7 +159,7 @@ class _RosterScreenState extends State<RosterScreen>
         if (canEdit)
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: '切換至編輯模式',
+            tooltip: AppLanguage.text(context, '切換至編輯模式'),
             onPressed: () =>
                 _loadEditLibrary(context, roster_edit_screen.loadLibrary),
           ),
@@ -178,10 +179,10 @@ class _RosterScreenState extends State<RosterScreen>
     if (allowedTypes.isEmpty) {
       return Scaffold(
         appBar: appBar,
-        body: const EmptyState(
+        body: EmptyState(
           icon: Icons.folder_off_outlined,
-          message: '尚未設定可檢視的牧區',
-          hint: '請聯絡管理員為您加入服事牧區',
+          message: AppLanguage.text(context, '尚未設定可檢視的牧區'),
+          hint: AppLanguage.text(context, '請聯絡管理員為您加入服事牧區'),
         ),
       );
     }
@@ -211,7 +212,7 @@ class _RosterScreenState extends State<RosterScreen>
                     const CircularProgressIndicator(),
                     const SizedBox(height: 12),
                     Text(
-                      '載入服事資訊中…',
+                      AppLanguage.text(context, '載入服事資訊中…'),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],

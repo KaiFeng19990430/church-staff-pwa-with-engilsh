@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/localization/app_language.dart';
 import '../../domain/entities/calendar_event.dart';
-
-final _dateFormat = DateFormat('yyyy/MM/dd (E)', 'zh_TW');
-final _dateTimeFormat = DateFormat('yyyy/MM/dd (E) HH:mm', 'zh_TW');
-final _timeFormat = DateFormat('HH:mm', 'zh_TW');
 
 /// Bottom sheet content for a single calendar event's detail view.
 ///
@@ -48,14 +45,17 @@ Future<void> showEventDetailSheet(
               const SizedBox(height: 16),
               EventDetailRow(
                 icon: Icons.schedule,
-                label: '時間',
-                value: formatEventDateTime(event),
+                label: AppLanguage.text(context, '時間'),
+                value: formatEventDateTime(
+                  event,
+                  Localizations.localeOf(context).toString(),
+                ),
               ),
               if (event.location != null && event.location!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 EventDetailRow(
                   icon: Icons.place_outlined,
-                  label: '地點',
+                  label: AppLanguage.text(context, '地點'),
                   value: event.location!,
                 ),
               ],
@@ -63,7 +63,7 @@ Future<void> showEventDetailSheet(
                   event.description!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
-                  '說明',
+                  AppLanguage.text(context, '說明'),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -107,7 +107,7 @@ Future<void> showEventDetailSheet(
                             await onDelete(event);
                           },
                           icon: const Icon(Icons.delete_outline, size: 18),
-                          label: const Text('刪除'),
+                          label: Text(AppLanguage.text(context, '刪除')),
                           style: TextButton.styleFrom(
                             foregroundColor: colorScheme.error,
                           ),
@@ -119,7 +119,7 @@ Future<void> showEventDetailSheet(
                             await onDuplicate(event);
                           },
                           icon: const Icon(Icons.copy_all_outlined, size: 18),
-                          label: const Text('複製'),
+                          label: Text(AppLanguage.text(context, '複製')),
                         ),
                       if (onEdit != null)
                         FilledButton.icon(
@@ -128,7 +128,7 @@ Future<void> showEventDetailSheet(
                             await onEdit(event);
                           },
                           icon: const Icon(Icons.edit_outlined, size: 18),
-                          label: const Text('編輯'),
+                          label: Text(AppLanguage.text(context, '編輯')),
                         ),
                     ],
                   ),
@@ -143,24 +143,31 @@ Future<void> showEventDetailSheet(
 }
 
 /// Formats a full date-time string for the detail view.
-String formatEventDateTime(CalendarEvent event) {
+String formatEventDateTime(CalendarEvent event, [String locale = 'zh_TW']) {
+  final dateFormat = DateFormat.yMMMMd(locale).add_EEEE();
+  final dateTimeFormat = DateFormat.yMMMMd(locale).add_EEEE().add_Hm();
+  final timeFormat = DateFormat.Hm(locale);
   if (event.isAllDay) {
-    final startText = _dateFormat.format(event.startDay);
+    final startText = dateFormat.format(event.startDay);
     if (!event.spansMultipleDays) {
-      return '全天 | $startText';
+      return locale.startsWith('en')
+          ? 'All day | $startText'
+          : '全天 | $startText';
     }
-    final endText = _dateFormat.format(event.endDay);
-    return '全天 | $startText - $endText';
+    final endText = dateFormat.format(event.endDay);
+    return locale.startsWith('en')
+        ? 'All day | $startText - $endText'
+        : '全天 | $startText - $endText';
   }
 
   final sameDay = DateUtils.isSameDay(event.startTime, event.endTime);
-  final startText = _dateTimeFormat.format(event.startTime);
+  final startText = dateTimeFormat.format(event.startTime);
   if (sameDay) {
-    final endText = _timeFormat.format(event.endTime);
+    final endText = timeFormat.format(event.endTime);
     return '$startText - $endText';
   }
 
-  final endText = _dateTimeFormat.format(event.endTime);
+  final endText = dateTimeFormat.format(event.endTime);
   return '$startText - $endText';
 }
 

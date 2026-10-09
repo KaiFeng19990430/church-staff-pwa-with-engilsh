@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../auth/presentation/providers/session_provider.dart';
 import '../../../../core/config/church_config.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/config/google_calendar_config.dart';
 import '../../../../core/time/church_time.dart';
 import '../../../calendar/data/google_calendar_event.dart';
@@ -91,16 +92,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final user = context.watch<SessionProvider>().currentUser;
     final fullName = user?.name ?? '';
-    final displayName = _displayName(fullName);
+    final displayName = _displayName(fullName, context);
     return Scaffold(
-      appBar: AppBar(title: const Text('首頁'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(AppLanguage.text(context, '首頁')),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '歡迎回來，$displayName！',
+              Localizations.localeOf(context).languageCode == 'en'
+                  ? 'Welcome back, $displayName!'
+                  : '歡迎回來，$displayName！',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -110,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 context,
                 icon: Icons.menu_book_rounded,
                 title: ChurchConfig.current.devotional.sourceName,
-                description: _dailyBreadDescription,
+                description: _dailyBreadDescription(context),
                 color: Colors.orangeAccent,
                 onTap: _openDailyBread,
               ),
@@ -131,9 +137,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  String _displayName(String? fullName) {
+  String _displayName(String? fullName, BuildContext context) {
     final name = fullName?.trim() ?? '';
-    if (name.isEmpty) return '同工';
+    if (name.isEmpty) return AppLanguage.text(context, '同工');
 
     final parts = name.split(_whitespaceRe).where((p) => p.isNotEmpty).toList();
     final hasLatin = _latinRe.hasMatch(name);
@@ -167,7 +173,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       log('載入行事曆畫面失敗', error: error, stackTrace: st);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('載入失敗：${mapErrorToUserMessage(error)}')),
+        SnackBar(
+          content: Text(
+            AppLanguage.text(context, '載入失敗：${mapErrorToUserMessage(error)}'),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -183,21 +193,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!devotional.enabled) return;
     final launched = await openExternalLink(devotional.linkUrl);
     if (!launched && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('無法開啟每日靈糧頁面')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.text(context, '無法開啟每日靈糧頁面'))),
+      );
     }
   }
 
-  String get _dailyBreadDescription {
+  String _dailyBreadDescription(BuildContext context) {
     final range = _dailyBreadRange?.trim();
     if (range != null && range.isNotEmpty) {
       return range;
     }
     if (_isLoadingDailyBreadRange) {
-      return '載入今日經文範圍中...';
+      return AppLanguage.text(context, '載入今日經文範圍中...');
     }
-    return _dailyBreadRangeFallback;
+    return AppLanguage.text(context, _dailyBreadRangeFallback);
   }
 
   Future<void> _loadDailyBreadRange() async {
@@ -574,11 +584,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: Colors.purpleAccent,
               ),
             ),
-            title: const Text(
-              '行事曆',
+            title: Text(
+              AppLanguage.text(context, '行事曆'),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text('教會年度活動一覽'),
+            subtitle: Text(AppLanguage.text(context, '教會年度活動一覽')),
             trailing: _isLoadingCalendar
                 ? const SizedBox(
                     width: 20,
@@ -609,19 +619,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (_recentActivitiesError != null && _recentActivities.isEmpty) {
       return Text(
-        _recentActivitiesError!,
+        AppLanguage.text(context, _recentActivitiesError!),
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       );
     }
 
     if (_recentActivities.isEmpty) {
-      return const Text('近期暫無活動');
+      return Text(AppLanguage.text(context, '近期暫無活動'));
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('近期活動', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          AppLanguage.text(context, '近期活動'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         ..._recentActivities.map((event) => RecentActivityRow(activity: event)),
       ],
@@ -640,7 +653,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // 若 IndexedDB cache 已有 roster，isLoading 仍可能為 true，但直接顯示卡內容。
         if (provider.isLoading && provider.rosters.isEmpty) {
           return _buildSectionCard(
-            title: window.title,
+            title: AppLanguage.text(context, window.title),
             icon: Icons.volunteer_activism,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -650,7 +663,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const Center(child: CircularProgressIndicator()),
                   const SizedBox(height: 12),
                   Text(
-                    '載入近期活動中…',
+                    AppLanguage.text(context, '載入近期活動中…'),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -661,20 +674,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         if (provider.error != null) {
           return _buildSectionCard(
-            title: window.title,
+            title: AppLanguage.text(context, window.title),
             icon: Icons.volunteer_activism,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  provider.error!,
+                  AppLanguage.text(context, provider.error!),
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
                 const SizedBox(height: 8),
                 FilledButton.icon(
                   onPressed: () => provider.fetchInitialData(),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('重試'),
+                  label: Text(AppLanguage.text(context, '重試')),
                 ),
               ],
             ),
@@ -688,8 +701,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
         if (assignments.isEmpty) {
           final emptyText = fullName.trim().isEmpty
-              ? '尚未登入同工資料'
-              : window.emptyText;
+              ? AppLanguage.text(context, '尚未登入同工資料')
+              : AppLanguage.text(context, window.emptyText);
           return _buildSectionCard(
             title: window.title,
             icon: Icons.volunteer_activism,
@@ -698,7 +711,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         return _buildSectionCard(
-          title: window.title,
+          title: AppLanguage.text(context, window.title),
           icon: Icons.volunteer_activism,
           child: SizedBox(
             height: _seasonListHeight(assignments.length),

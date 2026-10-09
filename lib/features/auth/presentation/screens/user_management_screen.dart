@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/user.dart';
 import 'package:church_staff_pwa/core/types/service_type.dart';
 import '../../../../core/widgets/text_warmup.dart';
+import '../../../../core/localization/app_language.dart';
 import '../providers/session_provider.dart';
 import '../providers/user_admin_provider.dart';
 import '../providers/group_settings_provider.dart';
@@ -144,7 +145,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('帳號管理')),
+      appBar: AppBar(title: Text(AppLanguage.text(context, '帳號管理'))),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openEditor(),
         child: const Icon(Icons.add),
@@ -197,8 +198,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: '搜尋姓名',
+                      decoration: InputDecoration(
+                        labelText: AppLanguage.text(context, '搜尋姓名'),
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.search),
                       ),
@@ -215,7 +216,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   ),
                   Expanded(
                     child: filteredUsers.isEmpty
-                        ? const Center(child: Text('沒有符合的帳號'))
+                        ? Center(
+                            child: Text(AppLanguage.text(context, '沒有符合的帳號')),
+                          )
                         : ListView.builder(
                             key: const PageStorageKey('user_management_list'),
                             controller: _scrollController,
@@ -223,6 +226,35 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             itemCount: filteredUsers.length,
                             itemBuilder: (context, index) {
                               final data = filteredUsers[index];
+                              final isEnglish =
+                                  Localizations.localeOf(
+                                    context,
+                                  ).languageCode ==
+                                  'en';
+                              final subtitle = isEnglish
+                                  ? [
+                                      AppLanguage.text(
+                                        context,
+                                        data.user.role.label,
+                                      ),
+                                      if (data.user.zones.isNotEmpty)
+                                        data.user.zones
+                                            .map(
+                                              (zone) => AppLanguage.text(
+                                                context,
+                                                zone.serviceType.label,
+                                              ),
+                                            )
+                                            .join(', '),
+                                      if (!data.user.isAdmin &&
+                                          data.user.groups.isNotEmpty)
+                                        'Can edit: ${data.user.groups.map((group) => AppLanguage.text(context, group.shortLabel)).join(', ')}',
+                                    ].join(' | ')
+                                  : data.subtitle;
+                              final displayName =
+                                  isEnglish && data.user.username.isEmpty
+                                  ? '${data.user.name} (no username)'
+                                  : data.displayName;
 
                               return RepaintBoundary(
                                 child: Card(
@@ -237,12 +269,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                       child: Icon(Icons.person, size: 18),
                                     ),
                                     title: Text(
-                                      data.displayName,
+                                      displayName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     subtitle: Text(
-                                      data.subtitle,
+                                      subtitle,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -262,9 +294,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                               final confirm = await showDialog<bool>(
                                                 context: context,
                                                 builder: (context) => AlertDialog(
-                                                  title: const Text('確認刪除'),
+                                                  title: Text(
+                                                    AppLanguage.text(
+                                                      context,
+                                                      '確認刪除',
+                                                    ),
+                                                  ),
                                                   content: Text(
-                                                    '確定要刪除 ${data.user.name} 嗎？',
+                                                    Localizations.localeOf(
+                                                              context,
+                                                            ).languageCode ==
+                                                            'en'
+                                                        ? 'Delete ${data.user.name}?'
+                                                        : '確定要刪除 ${data.user.name} 嗎？',
                                                   ),
                                                   actions: [
                                                     TextButton(
@@ -273,7 +315,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                                             context,
                                                             false,
                                                           ),
-                                                      child: const Text('取消'),
+                                                      child: Text(
+                                                        AppLanguage.text(
+                                                          context,
+                                                          '取消',
+                                                        ),
+                                                      ),
                                                     ),
                                                     TextButton(
                                                       onPressed: () =>
@@ -281,9 +328,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                                             context,
                                                             true,
                                                           ),
-                                                      child: const Text(
-                                                        '刪除',
-                                                        style: TextStyle(
+                                                      child: Text(
+                                                        AppLanguage.text(
+                                                          context,
+                                                          '刪除',
+                                                        ),
+                                                        style: const TextStyle(
                                                           color: Colors.red,
                                                         ),
                                                       ),

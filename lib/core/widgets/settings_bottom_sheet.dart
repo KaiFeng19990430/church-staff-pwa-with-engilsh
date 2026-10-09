@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../localization/app_language.dart';
 
 class SettingsBottomSheet extends StatelessWidget {
   final String title;
@@ -74,7 +75,14 @@ class SettingsBottomSheet extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Text('$submitLabel中…'),
+                                Text(
+                                  Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'en'
+                                      ? '${AppLanguage.text(context, submitLabel)}…'
+                                      : '$submitLabel中…',
+                                ),
                               ],
                             )
                           : Text(submitLabel)),

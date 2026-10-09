@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/config/google_calendar_config.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../../core/time/church_time.dart';
 import '../../../auth/presentation/providers/session_provider.dart';
 import '../../data/calendar_month_store.dart';
@@ -40,7 +41,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   /// grid collapses onto the shorter month underneath it. Small on purpose:
   /// the strip that loses its last row is on its way off screen.
   static const double _rowCollapseWindow = 0.3;
-  static final _monthHeaderFormat = DateFormat('yyyy年MM月', 'zh_TW');
 
   late final DateTime _anchorMonth;
   late final PageController _monthPageController;
@@ -129,8 +129,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     if (!GoogleCalendarConfig.isEnabled) {
       return Scaffold(
-        appBar: AppBar(title: const Text('行事曆')),
-        body: const Center(child: Text('行事曆未啟用或設定不完整')),
+        appBar: AppBar(title: Text(AppLanguage.text(context, '行事曆'))),
+        body: Center(child: Text(AppLanguage.text(context, '行事曆未啟用或設定不完整'))),
       );
     }
     final viewportWidth = MediaQuery.sizeOf(context).width;
@@ -143,11 +143,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('行事曆'), centerTitle: true, elevation: 0),
+      appBar: AppBar(
+        title: Text(AppLanguage.text(context, '行事曆')),
+        centerTitle: true,
+        elevation: 0,
+      ),
       floatingActionButton: canEdit
           ? FloatingActionButton(
               onPressed: () => _addEvent(_selectedDay.value ?? _focusedMonth),
-              tooltip: '新增活動',
+              tooltip: AppLanguage.text(context, '新增活動'),
               child: const Icon(Icons.add),
             )
           : null,
@@ -252,12 +256,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   /// you are looking at — it does not need a full IconButton's worth of height
   /// on either side of it.
   Widget _buildMonthHeader() {
-    final text = _monthHeaderFormat.format(_focusedMonth);
+    final locale = Localizations.localeOf(context).toString();
+    final text = DateFormat.yMMMM(locale).format(_focusedMonth);
     return Row(
       children: [
         _MonthArrow(
           icon: Icons.chevron_left,
-          tooltip: '上個月',
+          tooltip: AppLanguage.text(context, '上個月'),
           onPressed: () => _changeMonth(-1),
         ),
         Expanded(
@@ -274,7 +279,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
         _MonthArrow(
           icon: Icons.chevron_right,
-          tooltip: '下個月',
+          tooltip: AppLanguage.text(context, '下個月'),
           onPressed: () => _changeMonth(1),
         ),
       ],
@@ -282,7 +287,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildWeekdayHeader() {
-    const labels = ['日', '一', '二', '三', '四', '五', '六'];
+    final labels = Localizations.localeOf(context).languageCode == 'en'
+        ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+        : ['日', '一', '二', '三', '四', '五', '六'];
     return Row(
       children: labels
           .map(
