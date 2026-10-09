@@ -929,9 +929,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onTap:
             onTap ??
             () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('此功能即將推出！')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(AppLanguage.text(context, '此功能即將推出！'))),
+              );
             },
       ),
     );

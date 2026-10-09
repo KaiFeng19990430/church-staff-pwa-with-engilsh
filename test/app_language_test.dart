@@ -33,6 +33,7 @@ void main() {
     );
 
     expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Swap with another date'), findsOneWidget);
   });
 }
 
@@ -41,6 +42,13 @@ class _LocalizedTextProbe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Text(AppLanguage.text(context, '首頁')));
+    return Scaffold(
+      body: Column(
+        children: [
+          Text(AppLanguage.text(context, '首頁')),
+          Text(AppLanguage.text(context, '與其他日期交換')),
+        ],
+      ),
+    );
   }
 }

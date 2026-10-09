@@ -413,9 +413,16 @@ class _RosterListState extends State<_RosterList>
       await _showImportSummaryDialog(context, summary);
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(importResultMessage(summary))));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          importResultMessage(
+            summary,
+            isEnglish: Localizations.localeOf(context).languageCode == 'en',
+          ),
+        ),
+      ),
+    );
   }
 
   /// 依姓名把服事補進該同工的設定。
@@ -734,7 +741,7 @@ class _ImportJsonSheetState extends State<_ImportJsonSheet> {
                       : Icons.keyboard_arrow_right,
                   size: 18,
                 ),
-                label: const Text('自己貼 JSON'),
+                label: Text(AppLanguage.text(context, '自己貼 JSON')),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                 ),

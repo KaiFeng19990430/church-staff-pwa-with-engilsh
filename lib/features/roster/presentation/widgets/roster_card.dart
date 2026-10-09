@@ -547,7 +547,7 @@ class _RosterCardBody extends StatelessWidget {
                   trailing: [
                     if (isEditMode)
                       IconButton(
-                        tooltip: '刪除服事項目',
+                        tooltip: AppLanguage.text(context, '刪除服事項目'),
                         constraints: const BoxConstraints(
                           minWidth: 44,
                           minHeight: kDutyRowMinHeight,
@@ -570,7 +570,7 @@ class _RosterCardBody extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8.0),
               child: TextButton.icon(
                 icon: const Icon(Icons.add),
-                label: const Text('新增服事項目'),
+                label: Text(AppLanguage.text(context, '新增服事項目')),
                 onPressed: () => card._showAddDutyDialog(context),
               ),
             ),

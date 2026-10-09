@@ -316,7 +316,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
       actions: [
         TextButton(
           onPressed: _isSending ? null : () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(AppLanguage.text(context, '取消')),
         ),
         FilledButton(
           onPressed: _isSending ? null : _send,
@@ -326,7 +326,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                   width: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('寄出'),
+              : Text(AppLanguage.text(context, '寄出')),
         ),
       ],
     );

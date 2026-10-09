@@ -423,13 +423,17 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
         if (!widget.roleEditable)
           TextField(
             controller: _roleController,
-            decoration: const InputDecoration(labelText: '職位名稱'),
+            decoration: InputDecoration(
+              labelText: AppLanguage.text(context, '職位名稱'),
+            ),
             enabled: false,
           ),
         if (canSelectRole)
           DropdownButtonFormField<String>(
             initialValue: _selectedRole,
-            decoration: const InputDecoration(labelText: '服事項目'),
+            decoration: InputDecoration(
+              labelText: AppLanguage.text(context, '服事項目'),
+            ),
             items: widget.roleOptions.map((role) {
               return DropdownMenuItem(value: role, child: Text(role));
             }).toList(),
@@ -446,11 +450,9 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
             },
           ),
         if (roleMissing)
-          Builder(
-            builder: (context) => Text(
-              '請先按右上角中間的清單圖示「服事項目設定」新增項目',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+          Text(
+            AppLanguage.text(context, '請先按右上角中間的清單圖示「服事項目設定」新增項目'),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         // 換班的入口。原本是服事列上的一顆 ⇄，但那顆佔掉的 44px 讓名字欄只
         // 剩 142px，三個名字就被擠成兩行 —— 名字才是這個畫面天天在看的東西。
@@ -468,14 +470,14 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
                 widget.onSwap!();
               },
               icon: const Icon(Icons.swap_horiz, size: 18),
-              label: const Text('與其他日期交換'),
+              label: Text(AppLanguage.text(context, '與其他日期交換')),
             ),
           ),
         const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            '選擇同工（拖曳排序會套用到每一週）',
+            AppLanguage.text(context, '選擇同工（拖曳排序會套用到每一週）'),
             style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
           ),
         ),
@@ -489,7 +491,11 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return Center(child: Text('載入同工名單失敗: ${snapshot.error}'));
+                return Center(
+                  child: Text(
+                    '${AppLanguage.text(context, '載入同工名單失敗')}: ${snapshot.error}',
+                  ),
+                );
               }
 
               final data = snapshot.data;
@@ -543,7 +549,7 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
                         children: [
                           if (isCustom)
                             IconButton(
-                              tooltip: '刪除自訂項目',
+                              tooltip: AppLanguage.text(context, '刪除自訂項目'),
                               constraints: const BoxConstraints(
                                 minWidth: 48,
                                 minHeight: 48,
@@ -578,7 +584,9 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
                       role.isEmpty
-                          ? '先選擇服事項目，才會列出可以排的同工。'
+                          ? AppLanguage.text(context, '先選擇服事項目，才會列出可以排的同工。')
+                          : Localizations.localeOf(context).languageCode == 'en'
+                          ? 'No staff are assigned to "$role". Go to Profile > Account management and enable "Participates in duties" under the ${AppLanguage.text(context, widget.rosterType.label)} ministry.'
                           : '還沒有同工可排「$role」。請到「我的」→「帳號管理」編輯同工，'
                                 '在「${widget.rosterType.label}」牧區的「參與服事」'
                                 '勾選「$role」，他就會出現在這裡。',
@@ -600,7 +608,7 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
           child: TextButton.icon(
             onPressed: _showCustomInputSheet,
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('新增名單以外的人員'),
+            label: Text(AppLanguage.text(context, '新增名單以外的人員')),
           ),
         ),
       ],
@@ -611,12 +619,12 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
       children: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(AppLanguage.text(context, '取消')),
         ),
         const SizedBox(width: 8),
         FilledButton(
           onPressed: roleMissing ? null : _submit,
-          child: Text(widget.submitLabel),
+          child: Text(AppLanguage.text(context, widget.submitLabel)),
         ),
       ],
     );
@@ -634,7 +642,7 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  widget.title,
+                  AppLanguage.text(context, widget.title),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -656,16 +664,16 @@ class _RosterPeopleDialogState extends State<_RosterPeopleDialog> {
     }
 
     return AlertDialog(
-      title: Text(widget.title),
+      title: Text(AppLanguage.text(context, widget.title)),
       content: SizedBox(width: double.maxFinite, child: content),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(AppLanguage.text(context, '取消')),
         ),
         FilledButton(
           onPressed: roleMissing ? null : _submit,
-          child: Text(widget.submitLabel),
+          child: Text(AppLanguage.text(context, widget.submitLabel)),
         ),
       ],
     );

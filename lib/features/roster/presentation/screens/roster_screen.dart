@@ -65,7 +65,11 @@ class _RosterScreenState extends State<RosterScreen>
           dialogShown = false;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('載入失敗：${mapErrorToUserMessage(error)}')),
+          SnackBar(
+            content: Text(
+              '${AppLanguage.text(context, '載入失敗')}：${mapErrorToUserMessage(error)}',
+            ),
+          ),
         );
       }
     } finally {
@@ -231,7 +235,7 @@ class _RosterScreenState extends State<RosterScreen>
                   onPressed: () =>
                       context.read<RosterProvider>().fetchInitialData(),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('重試'),
+                  label: Text(AppLanguage.text(context, '重試')),
                 ),
               );
             }

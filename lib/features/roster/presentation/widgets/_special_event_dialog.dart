@@ -76,16 +76,20 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('確定要刪除「$trimmed」嗎？'),
+        title: Text(AppLanguage.text(context, '確認刪除')),
+        content: Text(
+          Localizations.localeOf(context).languageCode == 'en'
+              ? 'Delete "$trimmed"?'
+              : '確定要刪除「$trimmed」嗎？',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLanguage.text(context, '取消')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
+            child: Text(AppLanguage.text(context, '刪除')),
           ),
         ],
       ),
@@ -124,7 +128,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
                   TextField(
                     controller: _customController,
                     decoration: InputDecoration(
-                      hintText: '例：特別奉獻',
+                      hintText: AppLanguage.text(sheetContext, '例：特別奉獻'),
                       isDense: true,
                       filled: true,
                       fillColor: Theme.of(sheetContext)
@@ -145,7 +149,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '標籤顏色',
+                    AppLanguage.text(sheetContext, '標籤顏色'),
                     style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
                   ),
                   const SizedBox(height: 8),
@@ -192,7 +196,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
       controlAffinity: ListTileControlAffinity.leading,
       secondary: onRemove != null
           ? IconButton(
-              tooltip: '刪除自訂項目',
+              tooltip: AppLanguage.text(context, '刪除自訂項目'),
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               icon: const Icon(Icons.close, size: 18),
               onPressed: onRemove,
@@ -207,7 +211,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
     final hasSelection = _selected.isNotEmpty;
 
     return AlertDialog(
-      title: const Text('新增事件'),
+      title: Text(AppLanguage.text(context, '新增事件')),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -274,7 +278,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
               child: TextButton.icon(
                 onPressed: _showCustomInputSheet,
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('新增選項以外的事件'),
+                label: Text(AppLanguage.text(context, '新增選項以外的事件')),
               ),
             ),
           ],
@@ -283,7 +287,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(AppLanguage.text(context, '取消')),
         ),
         TextButton(
           onPressed: hasSelection
@@ -300,7 +304,7 @@ class _SpecialEventDialogState extends State<_SpecialEventDialog> {
                   );
                 }
               : null,
-          child: const Text('新增'),
+          child: Text(AppLanguage.text(context, '新增')),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 
 import 'package:church_staff_pwa/core/types/service_type.dart';
+import '../../../../core/localization/app_language.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../../../core/utils/error_messages.dart';
 import '../../domain/roster_import.dart';
@@ -15,13 +16,24 @@ import '../../domain/roster_import.dart';
 ///
 /// 外來講員不算問題、不會開匯入結果視窗，但名字要讓人看得到 —— 不然
 /// 「講員有沒有排上去」只能自己去翻服事表。
-String importResultMessage(RosterImportSummary summary) {
-  if (summary.updated == 0) return '找不到可更新的日期';
+String importResultMessage(
+  RosterImportSummary summary, {
+  bool isEnglish = false,
+}) {
+  if (summary.updated == 0) {
+    return isEnglish ? 'No dates to update were found' : '找不到可更新的日期';
+  }
   final guests = summary.guestSpeakerNames;
+  final updatedMessage = isEnglish
+      ? 'Updated ${summary.updated} roster${summary.updated == 1 ? '' : 's'}'
+      : '已更新 ${summary.updated} 筆服事表';
   return [
-    '已更新 ${summary.updated} 筆服事表',
-    if (guests.isNotEmpty) '外來講員：${guests.join('、')}',
-  ].join('。');
+    updatedMessage,
+    if (guests.isNotEmpty)
+      isEnglish
+          ? 'Guest speakers: ${guests.join(', ')}'
+          : '外來講員：${guests.join('、')}',
+  ].join(isEnglish ? '. ' : '。');
 }
 
 /// 補設定失敗、而且原因是使用者看得懂也能處理的。
@@ -191,7 +203,7 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('匯入結果'),
+      title: Text(AppLanguage.text(context, '匯入結果')),
       content: SizedBox(
         width: double.maxFinite,
         child: SingleChildScrollView(
@@ -210,7 +222,7 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    '下面的名字都已經排進表裡了。',
+                    AppLanguage.text(context, '下面的名字都已經排進表裡了。'),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -219,8 +231,10 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
 
               if (summary.roleMismatchDetails.isNotEmpty)
                 _Section(
-                  title: '沒有設定這個服事',
-                  note: widget.onAddMinistry == null ? '只有管理員能補進他的服事設定。' : null,
+                  title: AppLanguage.text(context, '沒有設定這個服事'),
+                  note: widget.onAddMinistry == null
+                      ? AppLanguage.text(context, '只有管理員能補進他的服事設定。')
+                      : null,
                   // 一個服事一列。同一個人被排到兩項時，可能只有其中一項該
                   // 補進設定（另一項是臨時支援），綁在一起就只能全補或全不補。
                   children: [
@@ -241,8 +255,8 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
                             action: widget.onAddMinistry == null
                                 ? null
                                 : _RowAction(
-                                    label: '新增服事至同工',
-                                    doneLabel: '已新增',
+                                    label: AppLanguage.text(context, '新增服事至同工'),
+                                    doneLabel: AppLanguage.text(context, '已新增'),
                                     onPressed: () => _fix(entry.key, role),
                                   ),
                           ),
@@ -251,8 +265,8 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
 
               if (summary.notInRosterNames.isNotEmpty)
                 _Section(
-                  title: '名單裡沒有這個人',
-                  note: '他不會在自己的首頁看到這次服事。',
+                  title: AppLanguage.text(context, '名單裡沒有這個人'),
+                  note: AppLanguage.text(context, '他不會在自己的首頁看到這次服事。'),
                   children: [
                     for (final name in summary.notInRosterNames)
                       // 名單裡有很像的就一起列出來。名字是照表上原文寫進去
@@ -264,7 +278,9 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
                           null => name,
                           final similar when similar.isEmpty => name,
                           final similar =>
-                            '$name（名單裡有很像的：${similar.join('、')}）',
+                            Localizations.localeOf(context).languageCode == 'en'
+                                ? '$name (similar name on staff list: ${similar.join(', ')})'
+                                : '$name（名單裡有很像的：${similar.join('、')}）',
                         },
                       ),
                   ],
@@ -276,7 +292,7 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
-                    '外來講員：${summary.guestSpeakerNames.join('、')}',
+                    '${AppLanguage.text(context, '外來講員：')}${summary.guestSpeakerNames.join(Localizations.localeOf(context).languageCode == 'en' ? ', ' : '、')}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -285,11 +301,11 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
 
               if (summary.otherNames.isNotEmpty)
                 _Section(
-                  title: '不確定是哪一位',
+                  title: AppLanguage.text(context, '不確定是哪一位'),
                   // 這一格沒有連到任何帳號 —— 名字照樣寫上去了，但兩位都不會
                   // 在自己的首頁看到。不講清楚的話，管理者只會
                   // 覺得「反正名字有出現」就過去了。
-                  note: '這一格沒有對到帳號，兩位都不會在自己的首頁看到。',
+                  note: AppLanguage.text(context, '這一格沒有對到帳號，兩位都不會在自己的首頁看到。'),
                   children: [
                     for (final name in summary.otherNames)
                       _PlainRow(text: name),
@@ -298,8 +314,8 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
 
               if (summary.missingDates.isNotEmpty)
                 _Section(
-                  title: '這幾天沒有匯入',
-                  note: '服事表裡找不到這些日期。',
+                  title: AppLanguage.text(context, '這幾天沒有匯入'),
+                  note: AppLanguage.text(context, '服事表裡找不到這些日期。'),
                   children: [
                     for (final date in summary.missingDates)
                       _PlainRow(text: date),
@@ -308,11 +324,14 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
 
               if (summary.notInEventCatalog.isNotEmpty)
                 _Section(
-                  title: '活動沒有固定顏色',
+                  title: AppLanguage.text(context, '活動沒有固定顏色'),
                   note: widget.onAddEvent == null
-                      ? '只有管理員能加進活動清單。'
+                      ? AppLanguage.text(context, '只有管理員能加進活動清單。')
                       // 講清楚按下去會發生什麼：顏色是挑的，不是問的。
-                      : '加進活動清單後會自動配一個顏色，之後可以在活動設定改。',
+                      : AppLanguage.text(
+                          context,
+                          '加進活動清單後會自動配一個顏色，之後可以在活動設定改。',
+                        ),
                   children: [
                     for (final name in summary.notInEventCatalog)
                       _ActionRow(
@@ -323,8 +342,8 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
                         action: widget.onAddEvent == null
                             ? null
                             : _RowAction(
-                                label: '加入活動清單',
-                                doneLabel: '已加入',
+                                label: AppLanguage.text(context, '加入活動清單'),
+                                doneLabel: AppLanguage.text(context, '已加入'),
                                 onPressed: () => _addEvent(name),
                               ),
                       ),
@@ -337,7 +356,7 @@ class _RosterImportSummaryDialogState extends State<RosterImportSummaryDialog> {
       actions: [
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('關閉'),
+          child: Text(AppLanguage.text(context, '關閉')),
         ),
       ],
     );

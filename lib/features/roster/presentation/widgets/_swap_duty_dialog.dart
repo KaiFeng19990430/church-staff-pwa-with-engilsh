@@ -115,7 +115,9 @@ class _SwapDutyDialogState extends State<_SwapDutyDialog> {
 
     if (!mounted) return;
     Navigator.of(context).pop();
-    messenger.showSnackBar(SnackBar(content: Text('已交換：$summary')));
+    messenger.showSnackBar(
+      SnackBar(content: Text('${AppLanguage.text(context, '已交換：')}$summary')),
+    );
   }
 
   @override

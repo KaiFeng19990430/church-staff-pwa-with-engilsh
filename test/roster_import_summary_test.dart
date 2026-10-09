@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:church_staff_pwa/core/types/service_type.dart';
@@ -170,6 +171,9 @@ void main() {
     }) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('zh', 'TW'),
+          supportedLocales: const [Locale('zh', 'TW'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           home: Scaffold(
             body: RosterImportSummaryDialog(
               summary: summary,
@@ -552,6 +556,23 @@ void main() {
         notInEventCatalog: [],
       );
       expect(importResultMessage(summary), '已更新 13 筆服事表');
+    });
+
+    test('English snackbar message is localized', () {
+      const summary = RosterImportSummary(
+        updated: 13,
+        missingDates: [],
+        notInRosterNames: [],
+        roleMismatchDetails: {},
+        otherNames: [],
+        nearMatchSuggestions: {},
+        notInEventCatalog: [],
+        guestSpeakerNames: ['周慕恩', '林牧師'],
+      );
+      expect(
+        importResultMessage(summary, isEnglish: true),
+        'Updated 13 rosters. Guest speakers: 周慕恩, 林牧師',
+      );
     });
 
     test('只有外來講員時不算有問題', () {
